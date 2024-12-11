@@ -1,0 +1,120 @@
+Microsoft Fabric (Nikolai Schuler) 
+1.LakeHouse
+	.csv and other files import and we can keep it as table using Dataflow gen2(Data engineering/Data Factory)
+	.it will be act as semantic model and sql analytics end point
+	.if we open analytics end point - we can use it as a database point of view as like sql server database - we can query the table which was in datalake.
+	.there is one onedatalake app aswell . U can download and install locally like onedrive.
+	.New Visual SQL Query(WHo dont have base in sql can use that)
+	.if data resides in another platform or another lakehouse we can use shortcut to use those data instead of taking a
+	 a copy of it.(Reduce redundency)
+2.Power BI and semantic models
+	.we can create our own semantic models based on tha tables that we have on lakehouse and we can create reports through online
+	.We also can use those semantic models in local power BI desktop under the DATA_HUB category (HOME) and then we can publish with permissions.
+	.Can create only DAX measure not calculated columns.
+	.Two types one is already created semantic model and sql analytics endpoint.
+	.if we tough the ... symbol in semantic model we could able to see auto created reports which will creat some reports based on the data resides
+	 we can click the edit button and we can alter the already created report.
+	.But the problem of those auto created reports and even ordinary reports are cant be consumed by the end users 
+	 who doest have fabric workspace access. so we have to create apps for it for better row level security(Audience).
+3.Data Factory and Data pipelines
+	.Here we will have data flow gen 2 and data pipelines.
+	.Data flow gen2 is for data prep(Acquiring),clean and transform data with the experience of power query editor.
+	.Data pipeline, here we can ingest data at scale and schedule data workflows. (Kind of oozie - workflow orchestration)
+ 
+Difference between dataflow and pipelines
+ 
+.A pipeline can orchestrate the execution of a dataflow.
+.Suitable for creating complex workflows that involve multiple steps and dependencies, such as copying data, 
+running stored procedures, and integrating dataflows(A dataflow is a tool to merge data from multiple sources, clean it, 
+and load it into a data destination like Azure SQL Database)
+ 
+Simple project - using datapipeline 
+	1. copy data from source and put it in lakehouse.
+	2. After this process on succedd run a dataflow gen 2 for the transformation of the abouve loaded table and loaded in the same lakehouse with
+	   different table name.( While doing this process - Disable the staging)
+	And schedule the pipeline.
+ 
+4.Warehouse
+	.Datawarehouse is not possible to store unstructured data like in a lake house.
+	.Using both the Lakehouse and Warehouse together allows you to leverage the strengths of each. For example, you can store raw and
+	 semi-structured data in the Lakehouse and then use the Warehouse for structured data analysis and reporting.
+	.In lakehouse table we cant update the data in the table but in warehouse table we can update it using sql end point.
+	.After creating a warehouse u will only in sql perspective cause its only for tables not the files.
+	.Here we have T-SQL, Dataflow gen2, Pipe line, sample data.
+	.As table created in parquet format so it cant be alter(we cant edit the schema like addind column and changing contraints etc) but we can update it.
+	.Here also we can create models by giving relationships.
+	.Here we have copy into command to pull data from s3 bucket or azure blob storage (But we can do it by using pipeline or dataflow gen2 as well)
+	syntax :(requirement we need to create a empty table first) then
+ 
+	copy into [dbo].[Table]
+	from 'connection_string'
+	with (FILE_TYPE = 'PARQUET')
+ 
+ 
+	
+	.so for example we have tables in warehouse but we want to take a table data from lakhouse we dont need to copy that data and 
+	 put it in our warehouse instead of that we can make a shortcut and it will virtually shows in our database under a lakehouse scheme.
+	 But the problem is we cant see those lakhhouse tables in our semantic model for that we have to create a view inside our warehouse.
+ 
+	example :  After making a shorcut 
+	create view [dbo].[table1]
+      As select * from  
+	[shortcutTableLakehouse].[dbo].[sales]
+ 
+	*source [Udemy video no: 43]
+ 
+	.Another smart way to pull the data from other source without copying the data is data cloning which is referencing to the other table.
+	so it will be virtually resides in our workhouse from the other sources like lakehouses. But we can also update the data in that referenced data
+	which will not affect the original table data in the original source.
+ 
+	create table [dbo].[dimen_city_clone] as clone of [dbo].[dimen_city]
+ 
+5.Data Engineering
+ 
+	.Notebook is there to run spark scripts for data processing -language supported by fabric -python, java, scala
+	.read and understand how to us ->  pyspark.sql.fuctions https://sparkbyexamples.com/pyspark/pyspark-sql-functions/
+	.the tables in lakehouse and warehouse are in .delta formats but the underlying file formats are .parquet file format.
+	.we can create a notebook using pyspark or java or scala and then we can schedule it or we can add in the new or existing pipeline.
+	.In workspace setting, under dataengineering/science we can modify the spart setting like pool modification. So that we can run complex process.
+	.More importantly we have "spark job definition" to design,schedule and manage your apache Spark job for big data processing.
+	.In that we have to create a single python fine which has python + spark activities. And we can scheduke it.
+	Example : we have notebooks which a small peace of code in each cell. We can makke it into single file and use that in spark job definition.
+Learn more about dataengineerig only by practicing and doing projects.
+ 
+6.Realtime Analytics.
+ 
+	.Here we have KQL Database, KQL Queryset and Eventstream.
+		KQL Datababe - Rapidly load structured and unstructured and streaming data for querying
+	.we have "event stream" which help us to get the live streaming data like stocks data and we can process it in real time and we can store them 
+	in Kql Database or Lakehouse.
+	.Use manage options to get the retention policies like how long the data needs to live in our data store like ksql database.
+ 
+7. Data Science.
+	.Here we have ML model, Experiment,environment.[Better take a Data science course to use it effectively and to learn basics]
+ 
+8.Data Activator.
+	.It is like a power automate to which will be triggered once the event started.
+	.Ex: "Power BI" report built with top of semantic model inside the fabric workspace, in each visual there will be a option called "Alert" 
+	 click it and set a flow u want(Based on condition).
+	.Ex: "Eventstream" also u can create a "triggers" using data activator based on condition. [Better see a seperate video for Data activotors]
+ 
+ 
+ 
+ 
+Interview Question:
+ 
+Microsoft Fabric Implementation
+ 
+Lakehouse: In Fabric, the Lakehouse can be used for ELT processes. Raw data is loaded into the Lakehouse, and transformations are performed 
+	     using tools like Spark or SQL within the Lakehouse environment2.
+Warehouse: For ETL processes, data can be transformed using Fabric Pipelines before being loaded into the Warehouse. This ensures that the data
+	     is clean and structured upon arrival1.
+ 
+Example Scenarios
+ETL Example: A financial institution extracts transaction data, transforms it to comply with regulatory standards, and then loads
+		 it into a data warehouse for reporting and compliance checks.
+ELT Example: A retail company extracts raw sales data, loads it into a Lakehouse, and then uses Spark to transform and 
+		 analyze the data for real-time inventory management and sales forecasting.
+ 
+By supporting both ETL and ELT, Microsoft Fabric provides the flexibility to choose the best approach based on your data 
+processing requirements and the capabilities of your target systems.
